@@ -1,55 +1,50 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
+const String studentId = '2415051024';
+const String studentName = 'Ni Putu Sapna Maharani';
 
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  Future<List<dynamic>> loadData() async {
-    final data = await rootBundle.loadString(
-      'assets/data/student_data.json',
-    );
-
-    return jsonDecode(data);
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Tahap 6'),
+          title: const Text('Tahap 7'),
         ),
-        body: FutureBuilder(
-          future: loadData(),
-          builder: (context, snapshot) {
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
 
-            if (!snapshot.hasData) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
+              Image.asset(
+                'assets/images/profile.png',
+                width: 120,
+                height: 120,
+              ),
 
-            final students = snapshot.data!;
+              const SizedBox(height: 20),
 
-            return ListView.builder(
-              itemCount: students.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  child: ListTile(
-                    title: Text(
-                      '${students[index]['nim']}',
-                    ),
-                    subtitle: Text(
-                      '${students[index]['nama']}',
-                    ),
-                  ),
-                );
-              },
-            );
-          },
+              Text(
+                studentId,
+                style: const TextStyle(
+                  fontSize: 18,
+                ),
+              ),
+
+              Text(
+                studentName,
+                style: const TextStyle(
+                  fontSize: 18,
+                ),
+              ),
+
+            ],
+          ),
         ),
       ),
     );
