@@ -1,45 +1,6 @@
-{
-  "student": {
+[
+  {
     "nim": "2415051024",
-    "name": "Ni Putu Sapna Maharani",
-    "class": "Mobile Programming"
-  },
-
-  "summary": {
-    "total": 5,
-    "credit": 20
-  },
-
-  "courses": [
-    {
-      "title": "Git & GitHub",
-      "code": "IT001",
-      "credits": 4,
-      "status": "Selesai"
-    },
-    {
-      "title": "Dart Fundamentals",
-      "code": "IT002",
-      "credits": 4,
-      "status": "Selesai"
-    },
-    {
-      "title": "Flutter UI Fundamentals",
-      "code": "IT003",
-      "credits": 4,
-      "status": "Berjalan"
-    },
-    {
-      "title": "Database",
-      "code": "IT004",
-      "credits": 4,
-      "status": "Belum"
-    },
-    {
-      "title": "Mobile Development",
-      "code": "IT005",
-      "credits": 4,
-      "status": "Belum"
-    }
-  ]
-}
+    "nama": "Ni Putu Sapna Maharani"
+  }
+]
