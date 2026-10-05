@@ -14,36 +14,41 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Tahap 7'),
+          title: const Text('Tahap 8'),
         ),
         body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
 
-              Image.asset(
-                'assets/images/profile.png',
-                width: 120,
-                height: 120,
+                  Image.asset(
+                    'assets/images/profile.png',
+                    width: 120,
+                    height: 120,
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  Text(
+                    studentId,
+                    style: const TextStyle(
+                      fontSize: 18,
+                    ),
+                  ),
+
+                  Text(
+                    studentName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                    ),
+                  ),
+
+                ],
               ),
-
-              const SizedBox(height: 20),
-
-              Text(
-                studentId,
-                style: const TextStyle(
-                  fontSize: 18,
-                ),
-              ),
-
-              Text(
-                studentName,
-                style: const TextStyle(
-                  fontSize: 18,
-                ),
-              ),
-
-            ],
+            ),
           ),
         ),
       ),
