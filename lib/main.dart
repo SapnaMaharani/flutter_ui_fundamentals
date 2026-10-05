@@ -6,85 +6,94 @@ const nama = 'Ni Putu Sapna Maharani';
 void main() => runApp(
   const MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: Home(),
+    home: FormPage(),
   ),
 );
 
-class Home extends StatefulWidget {
-  const Home({super.key});
+class FormPage extends StatefulWidget {
+  const FormPage({super.key});
 
   @override
-  State<Home> createState() => _HomeState();
+  State<FormPage> createState() => _FormPageState();
 }
 
-class _HomeState extends State<Home> {
+class _FormPageState extends State<FormPage> {
 
-  bool favorite = false;
+  final key = GlobalKey<FormState>();
+
+  final komentar = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 12'),
+        title: const Text('Tahap 13'),
       ),
 
-      body: Center(
-        child: InkWell(
+      body: Padding(
+        padding: const EdgeInsets.all(20),
 
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Course dipilih'),
+        child: Form(
+          key: key,
+
+          child: Column(
+            children: [
+
+              TextFormField(
+                initialValue: nama,
+                decoration: const InputDecoration(
+                  labelText: 'Nama',
+                ),
               ),
-            );
-          },
 
-          onLongPress: () {
-            showDialog(
-              context: context,
-              builder: (_) => const AlertDialog(
-                title: Text('Info Course'),
-                content: Text('Flutter UI Fundamentals'),
+              TextFormField(
+                initialValue: nim,
+                decoration: const InputDecoration(
+                  labelText: 'NIM',
+                ),
               ),
-            );
-          },
 
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+              TextFormField(
+                controller: komentar,
+                decoration: const InputDecoration(
+                  labelText: 'Komentar',
+                ),
 
-                  const Text(
-                    '$nim\n$nama',
-                    textAlign: TextAlign.center,
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  const Text(
-                    'Flutter UI Fundamentals',
-                    style: TextStyle(fontSize: 18),
-                  ),
-
-                  IconButton(
-                    icon: Icon(
-                      favorite
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                    ),
-
-                    onPressed: () {
-                      setState(() {
-                        favorite = !favorite;
-                      });
-                    },
-                  ),
-
-                ],
+                validator: (v) {
+                  if (v == null || v.length < 5) {
+                    return 'Komentar minimal 5 karakter';
+                  }
+                  return null;
+                },
               ),
-            ),
+
+              const SizedBox(height: 20),
+
+              ElevatedButton(
+                child: const Text('Kirim'),
+
+                onPressed: () {
+
+                  if (key.currentState!.validate()) {
+
+                    showDialog(
+                      context: context,
+
+                      builder: (_) => AlertDialog(
+                        title: const Text('Feedback'),
+
+                        content: Text(
+                          komentar.text,
+                        ),
+                      ),
+                    );
+
+                  }
+
+                },
+              ),
+
+            ],
           ),
         ),
       ),
