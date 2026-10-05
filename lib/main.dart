@@ -14,44 +14,27 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Tahap 8'),
+          title: const Text('Tahap 9'),
         ),
-        body: Center(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-
-                  Image.asset(
-                    'assets/images/profile.png',
-                    width: 120,
-                    height: 120,
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  Text(
-                    studentId,
-                    style: const TextStyle(
-                      fontSize: 18,
-                    ),
-                  ),
-
-                  Text(
-                    studentName,
-                    style: const TextStyle(
-                      fontSize: 18,
-                    ),
-                  ),
-
-                ],
-              ),
-            ),
-          ),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            studentCard(studentId, studentName),
+            studentCard('2400000001', 'Mahasiswa Contoh 1'),
+            studentCard('2400000002', 'Mahasiswa Contoh 2'),
+          ],
         ),
       ),
     );
   }
+}
+
+Widget studentCard(String nim, String nama) {
+  return Card(
+    child: ListTile(
+      leading: const Icon(Icons.person),
+      title: Text(nim),
+      subtitle: Text(nama),
+    ),
+  );
 }
