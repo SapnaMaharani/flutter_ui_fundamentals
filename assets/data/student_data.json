@@ -1,6 +1,16 @@
-[
-  {
-    "nim": "2415051024",
-    "nama": "Ni Putu Sapna Maharani"
-  }
-]
+{
+  "courses": [
+    {
+      "code": "M001",
+      "title": "Pemrograman Mobile",
+      "credits": 3,
+      "status": "Wajib"
+    },
+    {
+      "code": "W002",
+      "title": "Pemrograman Web",
+      "credits": 3,
+      "status": "Wajib"
+    }
+  ]
+}
