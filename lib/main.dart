@@ -3,51 +3,68 @@ import 'package:flutter/material.dart';
 const String studentName = 'Ni Putu Sapna Maharani';
 const String studentId = '2415051024';
 
-// PERBAIKAN: Kata 'const' dihilangkan sebelum MaterialApp
-void main() => runApp(MaterialApp(debugShowCheckedModeBanner: false, home: Tahap4ValueNotifier()));
+void main() => runApp(const MaterialApp(debugShowCheckedModeBanner: false, home: Tahap5ChangeNotifier()));
 
-class Tahap4ValueNotifier extends StatelessWidget {
-  Tahap4ValueNotifier({super.key});
+// 1. Buat Class ChangeNotifier (Sebagai State Object)
+class CourseProvider extends ChangeNotifier {
+  // Collection untuk menyimpan daftar course yang di-favorite
+  final Set<String> favorites = {};
 
-  // 1. Buat ValueNotifier untuk nilai sederhana
-  final ValueNotifier<int> favoriteCount = ValueNotifier<int>(0);
+  // Method untuk menambah/menghapus favorite
+  void toggleFavorite(String course) {
+    if (favorites.contains(course)) {
+      favorites.remove(course);
+    } else {
+      favorites.add(course);
+    }
+    // Wajib dipanggil agar widget yang mendengarkan (listener) tahu ada perubahan
+    notifyListeners(); 
+  }
+}
+
+// 2. Tampilan UI
+class Tahap5ChangeNotifier extends StatefulWidget {
+  const Tahap5ChangeNotifier({super.key});
+
+  @override
+  State<Tahap5ChangeNotifier> createState() => _Tahap5ChangeNotifierState();
+}
+
+class _Tahap5ChangeNotifierState extends State<Tahap5ChangeNotifier> {
+  // Inisialisasi object CourseProvider
+  final CourseProvider courseProvider = CourseProvider();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tahap 4: ValueNotifier')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text('$studentId • $studentName', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
-            const SizedBox(height: 20),
-            
-            // 2. Tampilkan nilai dengan ValueListenableBuilder
-            ValueListenableBuilder<int>(
-              valueListenable: favoriteCount,
-              builder: (context, value, child) {
-                return Text(
-                  'Total Favorite: $value',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
-                );
-              },
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // 3. Tambahkan button yang mengubah value
-            ElevatedButton(
-              onPressed: () {
-                favoriteCount.value++; 
-              },
-              child: const Text('Tambah Favorite'),
-            ),
-          ],
-        ),
+      appBar: AppBar(title: const Text('Tahap 5: ChangeNotifier')),
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text('$studentId • $studentName', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
+          
+          // Mendengarkan perubahan dari CourseProvider
+          ListenableBuilder(
+            listenable: courseProvider,
+            builder: (context, child) {
+              final isFav = courseProvider.favorites.contains('Pemrograman Mobile');
+              
+              return ListTile(
+                title: const Text('Pemrograman Mobile'),
+                subtitle: Text('Total Favorite: ${courseProvider.favorites.length}'),
+                trailing: IconButton(
+                  icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: Colors.red),
+                  onPressed: () {
+                    // Memanggil method perubahan state
+                    courseProvider.toggleFavorite('Pemrograman Mobile');
+                  },
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
