@@ -1,102 +1,37 @@
 import 'package:flutter/material.dart';
 
-const nim = '2415051024';
-const nama = 'Ni Putu Sapna Maharani';
+const String studentName = 'Ni Putu Sapna Maharani';
+const String studentId = '2415051024';
 
-void main() => runApp(const MaterialApp(
-  debugShowCheckedModeBanner: false,
-  home: DebuggingPage(),
-));
+void main() => runApp(const MaterialApp(debugShowCheckedModeBanner: false, home: Tahap1()));
 
-class DebuggingPage extends StatelessWidget {
-  const DebuggingPage({super.key});
-
+class Tahap1 extends StatefulWidget {
+  const Tahap1({super.key});
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Tahap 16 Debugging')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            Text(
-              '$nim - $nama',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text('Kasus A - Row Overflow'),
-            Row(
-              children: [
-                const Icon(Icons.info),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '$nim - $nama - teks sangat panjang agar tidak overflow',
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-
-            const Divider(),
-
-            const Text('Kasus B - ListView dalam Column'),
-            SizedBox(
-              height: 120,
-              child: ListView(
-                children: const [
-                  Text('Item 1'),
-                  Text('Item 2'),
-                  Text('Item 3'),
-                ],
-              ),
-            ),
-
-            const Divider(),
-
-            const Text('Kasus C - Keyboard Overflow'),
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'Masukkan komentar',
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const DetailPage(),
-                  ),
-                );
-              },
-              child: const Text('Buka Detail'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  State<Tahap1> createState() => _Tahap1State();
 }
 
-class DetailPage extends StatelessWidget {
-  const DetailPage({super.key});
+class _Tahap1State extends State<Tahap1> {
+  bool isFavorite = false; // Contoh Local State
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail')),
-      body: Center(
-        child: Text(
-          '$nim\n$nama\nDetail Page',
-          textAlign: TextAlign.center,
-        ),
+      appBar: AppBar(title: const Text('Tahap 1')),
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text('$studentId • $studentName', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
+          ListTile(
+            title: const Text('Pemrograman Mobile'),
+            trailing: IconButton(
+              icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border, color: Colors.red),
+              onPressed: () => setState(() => isFavorite = !isFavorite), // Mengubah local state
+            ),
+          ),
+        ],
       ),
     );
   }
