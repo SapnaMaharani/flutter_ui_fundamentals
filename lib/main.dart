@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'models/course.dart'; 
-
-const String studentName = 'Ni Putu Sapna Maharani';
-const String studentId = '2415051024';
+import 'models/course.dart'; // Memanggil model yang baru dibuat
 
 const String studentName = 'Ni Putu Sapna Maharani';
 const String studentId = '2415051024';
