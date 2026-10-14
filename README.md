@@ -1,17 +1,10 @@
-# flutter_ui_fundamentals
+# Course Explorer v2
 
-A new Flutter project.
+## Arsitektur dan Tanggung Jawab Layer (Separation of Concerns)
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- **models/**: Berisi struktur data (blueprint) aplikasi, seperti `Course`.
+- **services/**: Bertugas mengambil data mentah dari sumber data (JSON/API). Sama sekali tidak memuat UI/Widget.
+- **repositories/**: Bertindak sebagai perantara yang mengolah data dari Service agar siap dikonsumsi oleh Provider.
+- **providers/**: Bertanggung jawab mengelola *state* (status *loading*, *error*, data, dan *favorites*) menggunakan `ChangeNotifier`. Tidak menyimpan `BuildContext`.
+- **screens/**: Berisi antarmuka pengguna (UI). Hanya bertugas merender tampilan berdasarkan *state* dari Provider dan menangani interaksi pengguna.
+- **widgets/**: Berisi potongan-potongan UI yang dapat digunakan kembali (*reusable*) di berbagai *screens*.

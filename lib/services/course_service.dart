@@ -8,7 +8,7 @@ const String studentId = '2415051024';
 class CourseService {
   Future<List<Course>> loadCourses() async {
     // Membaca file JSON dari asset
-    final jsonString = await rootBundle.loadString('assets/data/data_ngawur.json');
+    final jsonString = await rootBundle.loadString('assets/data/student_data.json');
     final data = jsonDecode(jsonString) as Map<String, dynamic>;
     final list = data['courses'] as List<dynamic>;
     
