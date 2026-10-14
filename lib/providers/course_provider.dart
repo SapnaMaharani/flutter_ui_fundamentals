@@ -12,11 +12,23 @@ class CourseProvider extends ChangeNotifier {
   String? error;
   final Set<String> favorites = {};
 
+  // Fungsi mengecek status favorit
+  bool isFavorite(String code) => favorites.contains(code);
+
+  // Getter untuk mengambil data kursus yang difavoritkan
+  List<Course> get favoriteCourses {
+    return courses.where((c) => favorites.contains(c.code)).toList();
+  }
+
+  void toggleFavorite(String code) {
+    favorites.contains(code) ? favorites.remove(code) : favorites.add(code);
+    notifyListeners();
+  }
+
   Future<void> loadCourses() async {
     isLoading = true;
     error = null;
     notifyListeners();
-
     try {
       await Future.delayed(const Duration(seconds: 1)); 
       courses = await repository.getCourses();
@@ -26,14 +38,5 @@ class CourseProvider extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
-  }
-
-  void toggleFavorite(String courseCode) {
-    if (favorites.contains(courseCode)) {
-      favorites.remove(courseCode);
-    } else {
-      favorites.add(courseCode);
-    }
-    notifyListeners();
   }
 }
