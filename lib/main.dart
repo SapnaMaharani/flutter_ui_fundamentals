@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'models/course.dart';
-import 'services/course_service.dart'; // Memanggil service yang baru dibuat
+import 'services/course_service.dart';
+import 'repositories/course_repository.dart'; // Import repository baru
 
 const String studentName = 'Ni Putu Sapna Maharani';
 const String studentId = '2415051024';
@@ -33,23 +34,22 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Tahap9Screen(),
+      home: Tahap10Screen(),
     );
   }
 }
 
-class Tahap9Screen extends StatelessWidget {
-  const Tahap9Screen({super.key});
+class Tahap10Screen extends StatelessWidget {
+  const Tahap10Screen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tahap 9: Service / Data Source')),
+      appBar: AppBar(title: const Text('Tahap 10: Repository Pattern')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // NAMA DAN NIM AKAN TAMPIL DI LAYAR LEWAT WIDGET INI
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Text('$studentId • $studentName', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -57,17 +57,17 @@ class Tahap9Screen extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
-                // Menguji pemanggilan CourseService
+                // Menguji pemanggilan melalui Repository
                 final service = CourseService();
-                final courses = await service.loadCourses();
+                final repository = CourseRepository(service);
+                final courses = await repository.getCourses();
                 
-                // Menampilkan hasil uji ke Debug Console (Terminal VS Code)
-                debugPrint('Berhasil memuat ${courses.length} kursus dari JSON Asset!');
+                debugPrint('Berhasil memuat ${courses.length} kursus melalui Repository!');
                 for (var c in courses) {
-                  debugPrint('- ${c.code}: ${c.title}');
+                  debugPrint('- [${c.code}] ${c.title} (${c.credits} SKS)');
                 }
               },
-              child: const Text('Test Load JSON Data'),
+              child: const Text('Test Repository Data'),
             ),
           ],
         ),
