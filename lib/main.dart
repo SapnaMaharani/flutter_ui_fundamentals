@@ -1,40 +1,91 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'services/course_service.dart';
-import 'repositories/course_repository.dart';
-import 'providers/course_provider.dart';
-import 'screens/home_page.dart'; // Kita panggil home_page yang sudah dirancang khusus
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 const String studentName = 'Ni Putu Sapna Maharani';
 const String studentId = '2415051024';
 
-void main() {
-  final service = CourseService();
-  final repository = CourseRepository(service);
+void main() => runApp(const MyApp());
 
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => CourseProvider(repository)..loadCourses(),
-      child: const CourseExplorerApp(),
-    ),
-  );
-}
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-class CourseExplorerApp extends StatelessWidget {
-  const CourseExplorerApp({super.key});
-  
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1976D2),
-          foregroundColor: Colors.white,
+      home: Tahap2Screen(),
+    );
+  }
+}
+
+class Tahap2Screen extends StatefulWidget {
+  const Tahap2Screen({super.key});
+
+  @override
+  State<Tahap2Screen> createState() => _Tahap2ScreenState();
+}
+
+class _Tahap2ScreenState extends State<Tahap2Screen> {
+  final String apiUrl = 'https://jsonplaceholder.typicode.com/posts';
+  String _resultText = 'Tekan tombol untuk mengambil data';
+
+  Future<void> _fetchCourses() async {
+    setState(() {
+      _resultText = 'Loading...';
+    });
+    
+    try {
+      // Memanggil HTTP GET
+      final response = await http.get(Uri.parse(apiUrl));
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        
+        // Tampilkan jumlah item di debugPrint
+        debugPrint('Berhasil memuat ${data.length} item dari API.');
+        
+        // Tampilkan jumlah item di UI
+        setState(() {
+          _resultText = 'Berhasil mengambil ${data.length} data kursus (Status 200 OK)!';
+        });
+      } else {
+        throw Exception('HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
+      setState(() {
+        _resultText = 'Terjadi kesalahan:\n$e';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Tahap 2: HTTP GET')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('$studentId • $studentName', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 30),
+              Text(
+                _resultText, 
+                textAlign: TextAlign.center, 
+                style: const TextStyle(fontSize: 16, color: Colors.blue, fontWeight: FontWeight.bold)
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _fetchCourses,
+                child: const Text('Ambil Data (HTTP GET)'),
+              ),
+            ],
+          ),
         ),
       ),
-      home: const HomePage(), 
     );
   }
 }
