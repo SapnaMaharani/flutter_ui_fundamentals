@@ -1,10 +1,20 @@
-# Course Explorer v2
+# Course Data Manager (Course Explorer v2)
 
-## Arsitektur dan Tanggung Jawab Layer (Separation of Concerns)
+- **Nama:** Ni Putu Sapna Maharani
+- **NIM:** 2415051024
 
-- **models/**: Berisi struktur data (blueprint) aplikasi, seperti `Course`.
-- **services/**: Bertugas mengambil data mentah dari sumber data (JSON/API). Sama sekali tidak memuat UI/Widget.
-- **repositories/**: Bertindak sebagai perantara yang mengolah data dari Service agar siap dikonsumsi oleh Provider.
-- **providers/**: Bertanggung jawab mengelola *state* (status *loading*, *error*, data, dan *favorites*) menggunakan `ChangeNotifier`. Tidak menyimpan `BuildContext`.
-- **screens/**: Berisi antarmuka pengguna (UI). Hanya bertugas merender tampilan berdasarkan *state* dari Provider dan menangani interaksi pengguna.
-- **widgets/**: Berisi potongan-potongan UI yang dapat digunakan kembali (*reusable*) di berbagai *screens*.
+## Dokumentasi REST Endpoint & Struktur JSON (Tahap 1)
+- **Endpoint yang digunakan:** `https://jsonplaceholder.typicode.com/posts` (mapping ke `/courses`)
+- **HTTP Method:** `GET`
+- **Status Code:** `200 OK`
+- **Resource:** `courses`
+- **Empat Field JSON Utama:** `id`, `code`, `title`, `credits`, `status`
+
+```json
+{
+  "id": 1,
+  "code": "MOB01",
+  "title": "Git & GitHub",
+  "credits": 2,
+  "status": "active"
+}
