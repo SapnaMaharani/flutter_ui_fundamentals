@@ -27,7 +27,7 @@ class Tahap2Screen extends StatefulWidget {
 }
 
 class _Tahap2ScreenState extends State<Tahap2Screen> {
-  // Menggunakan URL API dari dosen
+  // URL resmi dari dosen
   final String apiUrl = 'https://course-api-pearl.vercel.app/courses';
   String _resultText = 'Tekan tombol untuk mengambil data';
 
@@ -41,8 +41,6 @@ class _Tahap2ScreenState extends State<Tahap2Screen> {
       
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        debugPrint('Berhasil memuat ${data.length} item dari API dosen.');
-        
         setState(() {
           _resultText = 'Berhasil mengambil ${data.length} data kursus (Status 200 OK)!';
         });
@@ -50,7 +48,6 @@ class _Tahap2ScreenState extends State<Tahap2Screen> {
         throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error: $e');
       setState(() {
         _resultText = 'Terjadi kesalahan:\n$e';
       });
