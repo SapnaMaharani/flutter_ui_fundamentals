@@ -1,18 +1,22 @@
 import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import '../models/course.dart';
 
-const String studentName = 'Ni Putu Sapna Maharani';
-const String studentId = '2415051024';
+class CourseApiService {
+  CourseApiService(this.baseUrl);
+  final String baseUrl;
 
-class CourseService {
-  Future<List<Course>> loadCourses() async {
-    // Membaca file JSON dari asset
-    final jsonString = await rootBundle.loadString('assets/data/student_data.json');
-    final data = jsonDecode(jsonString) as Map<String, dynamic>;
-    final list = data['courses'] as List<dynamic>;
+  Future<List<Course>> getCourses() async {
+    final response = await http.get(Uri.parse('$baseUrl/posts'));
     
-    // Mengubah data Map menjadi List<Course>
-    return list.map((e) => Course.fromJson(e as Map<String, dynamic>)).toList();
+    if (response.statusCode != 200) {
+      throw Exception('Gagal mengambil course');
+    }
+    
+    final List data = jsonDecode(response.body) as List;
+    return data
+        .map((e) => Course.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
+}
 }

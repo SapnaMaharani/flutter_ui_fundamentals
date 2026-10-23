@@ -1,15 +1,11 @@
-# Course Data Manager (Course Explorer v2)
-
-- **Nama:** Ni Putu Sapna Maharani
-- **NIM:** 2415051024
-
 ## Dokumentasi REST Endpoint & Struktur JSON (Tahap 1)
-- **Endpoint yang digunakan:** `https://jsonplaceholder.typicode.com/posts` (mapping ke `/courses`)
+- **Endpoint yang digunakan:** `https://course-api-pearl.vercel.app/courses`
 - **HTTP Method:** `GET`
 - **Status Code:** `200 OK`
 - **Resource:** `courses`
 - **Empat Field JSON Utama:** `id`, `code`, `title`, `credits`, `status`
 
+Contoh JSON:
 ```json
 {
   "id": 1,
