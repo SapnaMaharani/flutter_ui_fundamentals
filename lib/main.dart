@@ -9,7 +9,7 @@ const String studentId = '2415051024';
 
 void main() => runApp(ChangeNotifierProvider(
   create: (_) => CourseProvider(CourseApiService('https://course-api-pearl.vercel.app'))..loadCourses(),
-  child: const MaterialApp(home: Tahap7Screen(), debugShowCheckedModeBanner: false),
+  child: const MaterialApp(home: Tahap8Screen(), debugShowCheckedModeBanner: false),
 ));
 
 class CourseProvider extends ChangeNotifier {
@@ -31,16 +31,22 @@ class CourseProvider extends ChangeNotifier {
     catch (e) { error = e.toString(); return false; } finally { isSaving = false; notifyListeners(); }
   }
 
-  // Fungsi Edit untuk Tahap 7
   Future<bool> editCourse(int id, Course course) async {
     isSaving = true; notifyListeners();
     try { await apiService.updateCourse(id, course); await loadCourses(); return true; } 
     catch (e) { error = e.toString(); return false; } finally { isSaving = false; notifyListeners(); }
   }
+
+  // Fungsi Hapus untuk Tahap 8
+  Future<bool> deleteCourse(int id) async {
+    isSaving = true; notifyListeners();
+    try { await apiService.deleteCourse(id); await loadCourses(); return true; } 
+    catch (e) { error = e.toString(); return false; } finally { isSaving = false; notifyListeners(); }
+  }
 }
 
-class Tahap7Screen extends StatelessWidget {
-  const Tahap7Screen({super.key});
+class Tahap8Screen extends StatelessWidget {
+  const Tahap8Screen({super.key});
 
   void _showForm(BuildContext context, {Course? existingCourse}) {
     final key = GlobalKey<FormState>();
@@ -67,7 +73,7 @@ class Tahap7Screen extends StatelessWidget {
               onPressed: prov.isSaving ? null : () async {
                 if (key.currentState!.validate()) {
                   final course = Course(code: cCode.text, title: cTitle.text, credits: int.parse(cCred.text), status: status);
-                  final ok = isEdit ? await prov.editCourse(existingCourse.id!, course) : await prov.addCourse(course);
+                  final ok = isEdit ? await prov.editCourse(existingCourse!.id!, course) : await prov.addCourse(course);
                   if (!dCtx.mounted) return;
                   Navigator.pop(dCtx);
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok ? 'Berhasil disimpan!' : 'Gagal menyimpan!'), backgroundColor: ok ? Colors.green : Colors.red));
@@ -81,10 +87,34 @@ class Tahap7Screen extends StatelessWidget {
     );
   }
 
+  // Dialog Konfirmasi Hapus
+  void _confirmDelete(BuildContext context, CourseProvider prov, Course course) {
+    showDialog(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: Text('Yakin ingin menghapus ${course.title}?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Batal')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.pop(dCtx); // Tutup dialog konfirmasi
+              final ok = await prov.deleteCourse(course.id!);
+              if (!context.mounted) return; // Guard context
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok ? 'Berhasil dihapus!' : 'Gagal dihapus!'), backgroundColor: ok ? Colors.green : Colors.red));
+            },
+            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tahap 7: HTTP PUT/PATCH')),
+      appBar: AppBar(title: const Text('Tahap 8: HTTP DELETE')),
       body: Column(
         children: [
           const Padding(padding: EdgeInsets.all(16), child: Text('$studentId • $studentName', style: TextStyle(fontWeight: FontWeight.bold))),
@@ -96,7 +126,13 @@ class Tahap7Screen extends StatelessWidget {
               
               return ListView.builder(itemCount: prov.courses.length, itemBuilder: (c, i) => ListTile(
                 title: Text(prov.courses[i].title), subtitle: Text('${prov.courses[i].code} • ${prov.courses[i].credits} SKS • Status: ${prov.courses[i].status}'),
-                trailing: IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _showForm(context, existingCourse: prov.courses[i])), // Tombol Edit
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _showForm(context, existingCourse: prov.courses[i])),
+                    IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _confirmDelete(context, prov, prov.courses[i])), // Tombol Delete
+                  ],
+                ),
               ));
             },
           )),

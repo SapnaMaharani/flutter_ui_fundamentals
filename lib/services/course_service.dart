@@ -18,7 +18,6 @@ class CourseApiService {
     throw Exception('Gagal membuat course');
   }
 
-  // TAHAP 7: Fungsi PUT untuk update
   Future<void> updateCourse(int id, Course course) async {
     final res = await http.put(
       Uri.parse('$baseUrl/courses/$id'),
@@ -26,5 +25,11 @@ class CourseApiService {
       body: jsonEncode(course.toJson()),
     );
     if (res.statusCode < 200 || res.statusCode >= 300) throw Exception('Gagal memperbarui course');
+  }
+
+  // TAHAP 8: Fungsi DELETE
+  Future<void> deleteCourse(int id) async {
+    final res = await http.delete(Uri.parse('$baseUrl/courses/$id'));
+    if (res.statusCode < 200 || res.statusCode >= 300) throw Exception('Gagal menghapus course');
   }
 }
