@@ -9,7 +9,7 @@ const String studentId = '2415051024';
 
 void main() => runApp(ChangeNotifierProvider(
   create: (_) => CourseProvider(CourseApiService('https://course-api-pearl.vercel.app'))..loadCourses(),
-  child: const MaterialApp(home: Tahap6Screen(), debugShowCheckedModeBanner: false),
+  child: const MaterialApp(home: Tahap7Screen(), debugShowCheckedModeBanner: false),
 ));
 
 class CourseProvider extends ChangeNotifier {
@@ -21,36 +21,41 @@ class CourseProvider extends ChangeNotifier {
 
   Future<void> loadCourses() async {
     isLoading = true; error = null; notifyListeners();
-    try { courses = await apiService.getCourses(); }
-    catch (e) { error = e.toString(); }
+    try { courses = await apiService.getCourses(); } catch (e) { error = e.toString(); }
     finally { isLoading = false; notifyListeners(); }
   }
 
   Future<bool> addCourse(Course course) async {
     isSaving = true; notifyListeners();
-    try {
-      await apiService.createCourse(course);
-      await loadCourses(); // Refresh list setelah berhasil
-      return true;
-    } catch (e) { error = e.toString(); return false; }
-    finally { isSaving = false; notifyListeners(); }
+    try { await apiService.createCourse(course); await loadCourses(); return true; } 
+    catch (e) { error = e.toString(); return false; } finally { isSaving = false; notifyListeners(); }
+  }
+
+  // Fungsi Edit untuk Tahap 7
+  Future<bool> editCourse(int id, Course course) async {
+    isSaving = true; notifyListeners();
+    try { await apiService.updateCourse(id, course); await loadCourses(); return true; } 
+    catch (e) { error = e.toString(); return false; } finally { isSaving = false; notifyListeners(); }
   }
 }
 
-class Tahap6Screen extends StatelessWidget {
-  const Tahap6Screen({super.key});
+class Tahap7Screen extends StatelessWidget {
+  const Tahap7Screen({super.key});
 
-  void _showForm(BuildContext context) {
+  void _showForm(BuildContext context, {Course? existingCourse}) {
     final key = GlobalKey<FormState>();
-    final cCode = TextEditingController(), cTitle = TextEditingController(), cCred = TextEditingController();
-    String status = 'planned';
+    final cCode = TextEditingController(text: existingCourse?.code ?? '');
+    final cTitle = TextEditingController(text: existingCourse?.title ?? '');
+    final cCred = TextEditingController(text: existingCourse?.credits.toString() ?? '');
+    String status = existingCourse?.status ?? 'planned';
+    final isEdit = existingCourse != null;
 
     showDialog(
       context: context, barrierDismissible: false,
       builder: (dCtx) => AlertDialog(
-        title: const Text('Tambah Course Baru'),
+        title: Text(isEdit ? 'Edit Course' : 'Tambah Course'),
         content: Form(key: key, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextFormField(controller: cCode, decoration: const InputDecoration(labelText: 'Kode'), validator: (v) => v!.isEmpty ? 'Wajib' : null),
+          TextFormField(controller: cCode, readOnly: isEdit, decoration: InputDecoration(labelText: 'Kode', filled: isEdit, fillColor: Colors.grey[200]), validator: (v) => v!.isEmpty ? 'Wajib' : null),
           TextFormField(controller: cTitle, decoration: const InputDecoration(labelText: 'Judul'), validator: (v) => v!.isEmpty ? 'Wajib' : null),
           TextFormField(controller: cCred, decoration: const InputDecoration(labelText: 'SKS'), keyboardType: TextInputType.number, validator: (v) => int.tryParse(v ?? '') == null ? 'Angka valid' : null),
           DropdownButtonFormField<String>(value: status, items: ['planned', 'active', 'done'].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) => status = v!),
@@ -61,10 +66,11 @@ class Tahap6Screen extends StatelessWidget {
             builder: (ctx, prov, _) => ElevatedButton(
               onPressed: prov.isSaving ? null : () async {
                 if (key.currentState!.validate()) {
-                  final ok = await prov.addCourse(Course(code: cCode.text, title: cTitle.text, credits: int.parse(cCred.text), status: status));
+                  final course = Course(code: cCode.text, title: cTitle.text, credits: int.parse(cCred.text), status: status);
+                  final ok = isEdit ? await prov.editCourse(existingCourse.id!, course) : await prov.addCourse(course);
                   if (!dCtx.mounted) return;
                   Navigator.pop(dCtx);
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok ? 'Berhasil!' : 'Gagal!'), backgroundColor: ok ? Colors.green : Colors.red));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok ? 'Berhasil disimpan!' : 'Gagal menyimpan!'), backgroundColor: ok ? Colors.green : Colors.red));
                 }
               },
               child: prov.isSaving ? const SizedBox(width:16, height:16, child: CircularProgressIndicator()) : const Text('Simpan'),
@@ -78,7 +84,7 @@ class Tahap6Screen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tahap 6: HTTP POST')),
+      appBar: AppBar(title: const Text('Tahap 7: HTTP PUT/PATCH')),
       body: Column(
         children: [
           const Padding(padding: EdgeInsets.all(16), child: Text('$studentId • $studentName', style: TextStyle(fontWeight: FontWeight.bold))),
@@ -87,8 +93,10 @@ class Tahap6Screen extends StatelessWidget {
               if (prov.isLoading && prov.courses.isEmpty) return const Center(child: CircularProgressIndicator());
               if (prov.error != null && prov.courses.isEmpty) return ErrorView(message: prov.error!, onRetry: prov.loadCourses);
               if (prov.courses.isEmpty) return const Center(child: Text('Data belum tersedia'));
+              
               return ListView.builder(itemCount: prov.courses.length, itemBuilder: (c, i) => ListTile(
-                title: Text(prov.courses[i].title), subtitle: Text('${prov.courses[i].code} • ${prov.courses[i].credits} SKS • Status: ${prov.courses[i].status}')
+                title: Text(prov.courses[i].title), subtitle: Text('${prov.courses[i].code} • ${prov.courses[i].credits} SKS • Status: ${prov.courses[i].status}'),
+                trailing: IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _showForm(context, existingCourse: prov.courses[i])), // Tombol Edit
               ));
             },
           )),

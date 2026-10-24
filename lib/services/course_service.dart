@@ -6,26 +6,25 @@ class CourseApiService {
   CourseApiService(this.baseUrl);
   final String baseUrl;
 
-  // GET: Mengambil data
   Future<List<Course>> getCourses() async {
-    final response = await http.get(Uri.parse('$baseUrl/courses'));
-    if (response.statusCode != 200) throw Exception('Gagal mengambil course');
-    
-    final List data = jsonDecode(response.body) as List;
-    return data.map((e) => Course.fromJson(e as Map<String, dynamic>)).toList();
+    final res = await http.get(Uri.parse('$baseUrl/courses'));
+    if (res.statusCode != 200) throw Exception('Gagal ambil course');
+    return (jsonDecode(res.body) as List).map((e) => Course.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  // POST: Menambah data baru
   Future<Course> createCourse(Course course) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/courses'),
+    final res = await http.post(Uri.parse('$baseUrl/courses'), headers: {'Content-Type': 'application/json'}, body: jsonEncode(course.toJson()));
+    if (res.statusCode == 200 || res.statusCode == 201) return Course.fromJson(jsonDecode(res.body));
+    throw Exception('Gagal membuat course');
+  }
+
+  // TAHAP 7: Fungsi PUT untuk update
+  Future<void> updateCourse(int id, Course course) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/courses/$id'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(course.toJson()),
     );
-    
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return Course.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
-    }
-    throw Exception('Gagal membuat course (HTTP ${response.statusCode})');
+    if (res.statusCode < 200 || res.statusCode >= 300) throw Exception('Gagal memperbarui course');
   }
 }
