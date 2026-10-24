@@ -7,7 +7,8 @@ class CourseApiService {
   final String baseUrl;
 
   Future<List<Course>> getCourses() async {
-    final response = await http.get(Uri.parse('$baseUrl/posts'));
+    // Memanggil API dosen
+    final response = await http.get(Uri.parse('$baseUrl/courses'));
     
     if (response.statusCode != 200) {
       throw Exception('Gagal mengambil course');
@@ -18,5 +19,4 @@ class CourseApiService {
         .map((e) => Course.fromJson(e as Map<String, dynamic>))
         .toList();
   }
-}
 }
