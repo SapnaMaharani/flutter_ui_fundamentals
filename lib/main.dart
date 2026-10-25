@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/course.dart';
+import 'services/course_data_source.dart';
 import 'services/course_service.dart';
 import 'repositories/course_repository.dart';
 import 'widgets/error_view.dart';
@@ -8,15 +10,20 @@ import 'widgets/error_view.dart';
 const String studentName = 'Ni Putu Sapna Maharani';
 const String studentId = '2415051024';
 
-void main() {
-  // 1. Inisialisasi DataSource dan Repository
-  final dataSource = CourseApiService('https://course-api-pearl.vercel.app');
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  await Supabase.initialize(
+    url: 'https://grrelxipjcpmaxnkqnfd.supabase.co',
+    anonKey: 'sb_publishable__J_ypG1Z4qHJyu-PsVUjhg_5IFn5bJF',
+  );
+
+  final CourseDataSource dataSource = CourseApiService('https://course-api-pearl.vercel.app');
   final repository = CourseRepository(dataSource);
   
   runApp(ChangeNotifierProvider(
-    // 2. Provider sekarang hanya bergantung pada Repository
     create: (_) => CourseProvider(repository)..loadCourses(),
-    child: const MaterialApp(home: Tahap9Screen(), debugShowCheckedModeBanner: false),
+    child: const MaterialApp(home: Tahap10Screen(), debugShowCheckedModeBanner: false),
   ));
 }
 
@@ -53,9 +60,8 @@ class CourseProvider extends ChangeNotifier {
   }
 }
 
-// ==== UI ====
-class Tahap9Screen extends StatelessWidget {
-  const Tahap9Screen({super.key});
+class Tahap10Screen extends StatelessWidget {
+  const Tahap10Screen({super.key});
 
   void _showForm(BuildContext context, {Course? existingCourse}) {
     final key = GlobalKey<FormState>();
@@ -98,7 +104,7 @@ class Tahap9Screen extends StatelessWidget {
             onPressed: () async {
               Navigator.pop(dCtx); final ok = await prov.deleteCourse(course.id!);
               if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok ? 'Dihapus!' : 'Gagal!'), backgroundColor: ok ? Colors.green : Colors.red));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok ? 'Berhasil dihapus!' : 'Gagal!'), backgroundColor: ok ? Colors.green : Colors.red));
             }, child: const Text('Hapus', style: TextStyle(color: Colors.white)))
         ]));
   }
@@ -106,7 +112,7 @@ class Tahap9Screen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tahap 9: Repository Pattern')),
+      appBar: AppBar(title: const Text('Tahap 10: Backend Supabase')),
       body: Column(children: [
           const Padding(padding: EdgeInsets.all(16), child: Text('$studentId • $studentName', style: TextStyle(fontWeight: FontWeight.bold))),
           Expanded(child: Consumer<CourseProvider>(builder: (ctx, prov, _) {
