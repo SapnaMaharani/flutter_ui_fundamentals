@@ -22,7 +22,7 @@ Future<void> main() async {
       create: (_) => CourseProvider(supabaseService)..loadCourses(),
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: Tahap13Screen(),
+        home: Tahap14Screen(),
       ),
     ),
   );
@@ -58,7 +58,23 @@ class CourseProvider extends ChangeNotifier {
 
     try {
       await service.createCourse(course);
-      await loadCourses(); // Refresh daftar setelah insert
+      await loadCourses();
+    } catch (e) {
+      error = e.toString();
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Method update course
+  Future<void> editCourse(int id, Course course) async {
+    isLoading = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      await service.updateCourse(id, course);
+      await loadCourses(); // Refresh daftar setelah berhasil update
     } catch (e) {
       error = e.toString();
       isLoading = false;
@@ -67,32 +83,26 @@ class CourseProvider extends ChangeNotifier {
   }
 }
 
-class Tahap13Screen extends StatelessWidget {
-  const Tahap13Screen({super.key});
+class Tahap14Screen extends StatelessWidget {
+  const Tahap14Screen({super.key});
 
-  void _showAddCourseDialog(BuildContext context) {
+  void _showEditCourseDialog(BuildContext context, Course course) {
     final formKey = GlobalKey<FormState>();
-    final codeController = TextEditingController();
-    final titleController = TextEditingController();
-    final creditsController = TextEditingController();
-    String selectedStatus = 'active';
+    final titleController = TextEditingController(text: course.title);
+    final creditsController = TextEditingController(text: course.credits.toString());
+    String selectedStatus = course.status;
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setStateDialog) => AlertDialog(
-          title: const Text('Tambah Course Baru'),
+          title: Text('Edit Course (${course.code})'),
           content: SingleChildScrollView(
             child: Form(
               key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextFormField(
-                    controller: codeController,
-                    decoration: const InputDecoration(labelText: 'Kode Course (misal: C004)'),
-                    validator: (val) => val == null || val.trim().isEmpty ? 'Wajib diisi' : null,
-                  ),
                   TextFormField(
                     controller: titleController,
                     decoration: const InputDecoration(labelText: 'Judul Course'),
@@ -110,7 +120,9 @@ class Tahap13Screen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedStatus,
+                    value: ['planned', 'active', 'done'].contains(selectedStatus)
+                        ? selectedStatus
+                        : 'active',
                     decoration: const InputDecoration(labelText: 'Status'),
                     items: const [
                       DropdownMenuItem(value: 'planned', child: Text('planned')),
@@ -132,18 +144,19 @@ class Tahap13Screen extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  final newCourse = Course(
-                    code: codeController.text.trim(),
+                if (formKey.currentState!.validate() && course.id != null) {
+                  final updatedCourse = Course(
+                    id: course.id,
+                    code: course.code,
                     title: titleController.text.trim(),
                     credits: int.parse(creditsController.text.trim()),
                     status: selectedStatus,
                   );
                   Navigator.pop(ctx);
-                  await context.read<CourseProvider>().addCourse(newCourse);
+                  await context.read<CourseProvider>().editCourse(course.id!, updatedCourse);
                 }
               },
-              child: const Text('Simpan'),
+              child: const Text('Update'),
             ),
           ],
         ),
@@ -155,7 +168,7 @@ class Tahap13Screen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 13: INSERT Supabase'),
+        title: const Text('Tahap 14: UPDATE Supabase'),
       ),
       body: Column(
         children: [
@@ -199,6 +212,10 @@ class Tahap13Screen extends StatelessWidget {
                         ),
                         title: Text(course.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text('${course.code} • ${course.credits} SKS • ${course.status}'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () => _showEditCourseDialog(context, course),
+                        ),
                       ),
                     );
                   },
@@ -207,10 +224,6 @@ class Tahap13Screen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddCourseDialog(context),
-        child: const Icon(Icons.add),
       ),
     );
   }
