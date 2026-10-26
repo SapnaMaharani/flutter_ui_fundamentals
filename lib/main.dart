@@ -22,7 +22,7 @@ Future<void> main() async {
       create: (_) => CourseProvider(supabaseService)..loadCourses(),
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: Tahap14Screen(),
+        home: Tahap15Screen(),
       ),
     ),
   );
@@ -66,7 +66,6 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  // Method update course
   Future<void> editCourse(int id, Course course) async {
     isLoading = true;
     error = null;
@@ -74,7 +73,23 @@ class CourseProvider extends ChangeNotifier {
 
     try {
       await service.updateCourse(id, course);
-      await loadCourses(); // Refresh daftar setelah berhasil update
+      await loadCourses();
+    } catch (e) {
+      error = e.toString();
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Method delete course
+  Future<void> removeCourse(int id) async {
+    isLoading = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      await service.deleteCourse(id);
+      await loadCourses(); // Otomatis refresh list setelah data terhapus
     } catch (e) {
       error = e.toString();
       isLoading = false;
@@ -83,83 +98,31 @@ class CourseProvider extends ChangeNotifier {
   }
 }
 
-class Tahap14Screen extends StatelessWidget {
-  const Tahap14Screen({super.key});
+class Tahap15Screen extends StatelessWidget {
+  const Tahap15Screen({super.key});
 
-  void _showEditCourseDialog(BuildContext context, Course course) {
-    final formKey = GlobalKey<FormState>();
-    final titleController = TextEditingController(text: course.title);
-    final creditsController = TextEditingController(text: course.credits.toString());
-    String selectedStatus = course.status;
-
+  void _confirmDelete(BuildContext context, Course course) {
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setStateDialog) => AlertDialog(
-          title: Text('Edit Course (${course.code})'),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: titleController,
-                    decoration: const InputDecoration(labelText: 'Judul Course'),
-                    validator: (val) => val == null || val.trim().isEmpty ? 'Wajib diisi' : null,
-                  ),
-                  TextFormField(
-                    controller: creditsController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'SKS / Credits'),
-                    validator: (val) {
-                      if (val == null || val.trim().isEmpty) return 'Wajib diisi';
-                      if (int.tryParse(val) == null) return 'Harus berupa angka';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: ['planned', 'active', 'done'].contains(selectedStatus)
-                        ? selectedStatus
-                        : 'active',
-                    decoration: const InputDecoration(labelText: 'Status'),
-                    items: const [
-                      DropdownMenuItem(value: 'planned', child: Text('planned')),
-                      DropdownMenuItem(value: 'active', child: Text('active')),
-                      DropdownMenuItem(value: 'done', child: Text('done')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) setStateDialog(() => selectedStatus = val);
-                    },
-                  ),
-                ],
-              ),
-            ),
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: Text('Yakin ingin menghapus mata kuliah "${course.title}" (${course.code})?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState!.validate() && course.id != null) {
-                  final updatedCourse = Course(
-                    id: course.id,
-                    code: course.code,
-                    title: titleController.text.trim(),
-                    credits: int.parse(creditsController.text.trim()),
-                    status: selectedStatus,
-                  );
-                  Navigator.pop(ctx);
-                  await context.read<CourseProvider>().editCourse(course.id!, updatedCourse);
-                }
-              },
-              child: const Text('Update'),
-            ),
-          ],
-        ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              if (course.id != null) {
+                await context.read<CourseProvider>().removeCourse(course.id!);
+              }
+            },
+            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
@@ -168,7 +131,7 @@ class Tahap14Screen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 14: UPDATE Supabase'),
+        title: const Text('Tahap 15: DELETE Supabase'),
       ),
       body: Column(
         children: [
@@ -213,8 +176,8 @@ class Tahap14Screen extends StatelessWidget {
                         title: Text(course.title, style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text('${course.code} • ${course.credits} SKS • ${course.status}'),
                         trailing: IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _showEditCourseDialog(context, course),
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _confirmDelete(context, course),
                         ),
                       ),
                     );
