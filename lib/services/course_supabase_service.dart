@@ -1,12 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/course.dart';
-
-abstract class CourseDataSource {
-  Future<List<Course>> getCourses();
-  Future<Course> createCourse(Course course);
-  Future<void> updateCourse(int id, Course course);
-  Future<void> deleteCourse(int id);
-}
+import 'course_data_source.dart';
 
 class CourseSupabaseService implements CourseDataSource {
   final supabase = Supabase.instance.client;

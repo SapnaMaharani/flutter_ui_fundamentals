@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'models/course.dart';
+import 'services/course_data_source.dart';
 import 'services/course_supabase_service.dart';
+import 'repositories/course_repository.dart';
+import 'providers/course_provider.dart';
+import 'screens/responsive_shell.dart';
 
 const String studentName = 'Ni Putu Sapna Maharani';
 const String studentId = '2415051024';
@@ -15,179 +18,30 @@ Future<void> main() async {
     anonKey: 'sb_publishable__J_ypG1Z4qHJyu-PsVUjhg_5IFn5bJF',
   );
 
-  final supabaseService = CourseSupabaseService();
+  final CourseDataSource dataSource = CourseSupabaseService();
+  final repository = CourseRepository(dataSource);
 
   runApp(
     ChangeNotifierProvider(
-      create: (_) => CourseProvider(supabaseService)..loadCourses(),
-      child: const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Tahap15Screen(),
-      ),
+      create: (_) => CourseProvider(repository)..loadCourses(),
+      child: const CourseDataManagerApp(),
     ),
   );
 }
 
-class CourseProvider extends ChangeNotifier {
-  final CourseSupabaseService service;
-  CourseProvider(this.service);
-
-  List<Course> courses = [];
-  bool isLoading = false;
-  String? error;
-
-  Future<void> loadCourses() async {
-    isLoading = true;
-    error = null;
-    notifyListeners();
-
-    try {
-      courses = await service.getCourses();
-    } catch (e) {
-      error = e.toString();
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> addCourse(Course course) async {
-    isLoading = true;
-    error = null;
-    notifyListeners();
-
-    try {
-      await service.createCourse(course);
-      await loadCourses();
-    } catch (e) {
-      error = e.toString();
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> editCourse(int id, Course course) async {
-    isLoading = true;
-    error = null;
-    notifyListeners();
-
-    try {
-      await service.updateCourse(id, course);
-      await loadCourses();
-    } catch (e) {
-      error = e.toString();
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  // Method delete course
-  Future<void> removeCourse(int id) async {
-    isLoading = true;
-    error = null;
-    notifyListeners();
-
-    try {
-      await service.deleteCourse(id);
-      await loadCourses(); // Otomatis refresh list setelah data terhapus
-    } catch (e) {
-      error = e.toString();
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-}
-
-class Tahap15Screen extends StatelessWidget {
-  const Tahap15Screen({super.key});
-
-  void _confirmDelete(BuildContext context, Course course) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Konfirmasi Hapus'),
-        content: Text('Yakin ingin menghapus mata kuliah "${course.title}" (${course.code})?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              if (course.id != null) {
-                await context.read<CourseProvider>().removeCourse(course.id!);
-              }
-            },
-            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
+class CourseDataManagerApp extends StatelessWidget {
+  const CourseDataManagerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tahap 15: DELETE Supabase'),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Course Data Manager',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
       ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: Colors.blue.shade50,
-            child: const Text(
-              '$studentId • $studentName',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Consumer<CourseProvider>(
-              builder: (ctx, prov, _) {
-                if (prov.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (prov.error != null) {
-                  return Center(
-                    child: Text('Error: ${prov.error}', style: const TextStyle(color: Colors.red)),
-                  );
-                }
-                if (prov.courses.isEmpty) {
-                  return const Center(child: Text('Tidak ada data di tabel Supabase'));
-                }
-
-                return ListView.builder(
-                  itemCount: prov.courses.length,
-                  itemBuilder: (context, index) {
-                    final course = prov.courses[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          child: Text(course.code.isNotEmpty ? course.code[0] : '?'),
-                        ),
-                        title: Text(course.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${course.code} • ${course.credits} SKS • ${course.status}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _confirmDelete(context, course),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+      home: const ResponsiveShell(),
     );
   }
 }
