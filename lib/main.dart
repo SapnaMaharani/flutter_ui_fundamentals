@@ -15,7 +15,7 @@ Future<void> main() async {
 
   await Supabase.initialize(
     url: 'https://grrelxipjcpmaxnkqnfd.supabase.co',
-    anonKey: 'sb_publishable__J_ypG1Z4qHJyu-PsVUjhg_5IFn5bJF',
+    anonKey: 'sb_publishable__J_ypG1Z4qHJyu-PsVUjhg_5',
   );
 
   final CourseDataSource dataSource = CourseSupabaseService();
