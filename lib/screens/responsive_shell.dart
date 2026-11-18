@@ -7,6 +7,7 @@ import '../providers/course_provider.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
 import '../pages/login_page.dart';
+import '../widgets/role_guard.dart';
 import 'course_detail_page.dart';
 
 const String studentName = 'Ni Putu Sapna Maharani';
@@ -441,7 +442,10 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
   }
 
   // TAMPILAN DAFTAR COURSE
-  Widget _buildListTab(CourseProvider prov) {
+  Widget _buildListTab(
+    CourseProvider prov, {
+    required bool canManage,
+  }) {
     if (prov.isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -529,36 +533,33 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
               children: [
                 IconButton(
                   icon: Icon(
-                    isFav
-                        ? Icons.favorite
-                        : Icons.favorite_border,
+                    isFav ? Icons.favorite : Icons.favorite_border,
                     color: Colors.red,
                   ),
                   onPressed: () {
                     prov.toggleFavorite(item.code);
                   },
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.edit,
-                    color: Colors.blue,
+                if (canManage) ...[
+                  IconButton(
+                    icon: const Icon(
+                      Icons.edit,
+                      color: Colors.blue,
+                    ),
+                    onPressed: () {
+                      _showCourseDialog(context, course: item);
+                    },
                   ),
-                  onPressed: () {
-                    _showCourseDialog(
-                      context,
-                      course: item,
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete,
-                    color: Colors.redAccent,
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.redAccent,
+                    ),
+                    onPressed: () {
+                      _confirmDelete(context, item);
+                    },
                   ),
-                  onPressed: () {
-                    _confirmDelete(context, item);
-                  },
-                ),
+                ],
               ],
             ),
           ),
@@ -635,92 +636,134 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     final prov = context.watch<CourseProvider>();
     final isWide = MediaQuery.of(context).size.width >= 600;
 
-    final content = Column(
-      children: [
-        _buildProfileHeader(),
-        Expanded(
-          child: _currentIndex == 0
-              ? _buildListTab(prov)
-              : _buildFavoritesTab(prov),
-        ),
-      ],
-    );
+    return FutureBuilder<UserProfile?>(
+      future: _profileFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _currentIndex == 0
-              ? 'Course Data Manager'
-              : 'Favorites',
-        ),
-        actions: [
-          IconButton(
-            onPressed: _logout,
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
+        if (snapshot.hasError || snapshot.data == null) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Course Data Manager'),
+              actions: [
+                IconButton(
+                  onPressed: _logout,
+                  icon: const Icon(Icons.logout),
+                  tooltip: 'Logout',
+                ),
+              ],
+            ),
+            body: const Center(
+              child: Text('Gagal memuat profil pengguna.'),
+            ),
+          );
+        }
+
+        final profile = snapshot.data!;
+        final canManage = profile.isOwner || profile.isAdmin;
+
+        final content = Column(
+          children: [
+            _buildProfileHeader(),
+            Expanded(
+              child: _currentIndex == 0
+                  ? _buildListTab(
+                      prov,
+                      canManage: canManage,
+                    )
+                  : _buildFavoritesTab(prov),
+            ),
+          ],
+        );
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              _currentIndex == 0
+                  ? 'Course Data Manager'
+                  : 'Favorites',
+            ),
+            actions: [
+              IconButton(
+                onPressed: _logout,
+                icon: const Icon(Icons.logout),
+                tooltip: 'Logout',
+              ),
+            ],
           ),
-        ],
-      ),
-      body: isWide
-          ? Row(
-              children: [
-                NavigationRail(
+          body: isWide
+              ? Row(
+                  children: [
+                    NavigationRail(
+                      selectedIndex: _currentIndex,
+                      onDestinationSelected: (idx) {
+                        setState(() {
+                          _currentIndex = idx;
+                        });
+                      },
+                      labelType: NavigationRailLabelType.all,
+                      destinations: const [
+                        NavigationRailDestination(
+                          icon: Icon(Icons.list),
+                          label: Text('Courses'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.favorite),
+                          label: Text('Favorites'),
+                        ),
+                      ],
+                    ),
+                    const VerticalDivider(
+                      thickness: 1,
+                      width: 1,
+                    ),
+                    Expanded(
+                      child: content,
+                    ),
+                  ],
+                )
+              : content,
+          bottomNavigationBar: isWide
+              ? null
+              : NavigationBar(
                   selectedIndex: _currentIndex,
                   onDestinationSelected: (idx) {
                     setState(() {
                       _currentIndex = idx;
                     });
                   },
-                  labelType: NavigationRailLabelType.all,
                   destinations: const [
-                    NavigationRailDestination(
+                    NavigationDestination(
                       icon: Icon(Icons.list),
-                      label: Text('Courses'),
+                      label: 'Courses',
                     ),
-                    NavigationRailDestination(
+                    NavigationDestination(
                       icon: Icon(Icons.favorite),
-                      label: Text('Favorites'),
+                      label: 'Favorites',
                     ),
                   ],
                 ),
-                const VerticalDivider(
-                  thickness: 1,
-                  width: 1,
-                ),
-                Expanded(
-                  child: content,
-                ),
-              ],
-            )
-          : content,
-      bottomNavigationBar: isWide
-          ? null
-          : NavigationBar(
-              selectedIndex: _currentIndex,
-              onDestinationSelected: (idx) {
-                setState(() {
-                  _currentIndex = idx;
-                });
-              },
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.list),
-                  label: 'Courses',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.favorite),
-                  label: 'Favorites',
-                ),
-              ],
-            ),
-      floatingActionButton: _currentIndex == 0
-          ? FloatingActionButton(
-              onPressed: () {
-                _showCourseDialog(context);
-              },
-              child: const Icon(Icons.add),
-            )
-          : null,
+          floatingActionButton: _currentIndex == 0
+              ? RoleGuard(
+                  role: profile.role,
+                  allowed: const ['owner', 'admin'],
+                  child: FloatingActionButton.extended(
+                    onPressed: () {
+                      _showCourseDialog(context);
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Tambah Course'),
+                  ),
+                )
+              : null,
+        );
+      },
     );
   }
 }
