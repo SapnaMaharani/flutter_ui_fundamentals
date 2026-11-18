@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'services/course_data_source.dart';
 import 'services/course_supabase_service.dart';
 import 'services/auth_service.dart';
 
@@ -21,13 +20,14 @@ Future<void> main() async {
 
   // Inisialisasi Supabase
   await Supabase.initialize(
-  url: 'https://grrelxipjcpmaxnkqnfd.supabase.co',
-  publishableKey: 'sb_publishable__J_ypG1Z4qHJyu-PsVUjhg_5IFn5bJF', 
+    url: 'https://grrelxipjcpmaxnkqnfd.supabase.co',
+    publishableKey: 'sb_publishable__J_ypG1Z4qHJyu-PsVUjhg_5IFn5bJF',
   );
 
-  // Inisialisasi Data Source dan Repository
-  final CourseDataSource dataSource = CourseSupabaseService();
-  final repository = CourseRepository(dataSource);
+  // Inisialisasi Repository
+  final repository = CourseRepository(
+    dataSource: CourseSupabaseService(),
+  );
 
   runApp(
     ChangeNotifierProvider(
