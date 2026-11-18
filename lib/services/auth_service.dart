@@ -1,3 +1,4 @@
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
@@ -16,18 +17,24 @@ class AuthService {
   // Memeriksa status login
   bool get isLoggedIn => currentSession != null;
 
-  // Registrasi
+  // Registrasi pengguna dengan nama dan role
   Future<AuthResponse> register({
     required String email,
     required String password,
+    String name = '',
+    String role = 'seeker',
   }) async {
     return await _client.auth.signUp(
       email: email,
       password: password,
+      data: {
+        'name': name,
+        'role': role,
+      },
     );
   }
 
-  // Login
+  // Login pengguna
   Future<AuthResponse> login({
     required String email,
     required String password,
@@ -38,7 +45,7 @@ class AuthService {
     );
   }
 
-  // Logout
+  // Logout pengguna
   Future<void> logout() async {
     await _client.auth.signOut();
   }

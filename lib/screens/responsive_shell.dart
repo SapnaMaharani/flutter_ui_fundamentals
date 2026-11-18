@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/course.dart';
 import '../providers/course_provider.dart';
 import '../services/auth_service.dart';
+import '../services/profile_service.dart';
 import '../pages/login_page.dart';
 import 'course_detail_page.dart';
 
@@ -21,7 +22,15 @@ class ResponsiveShell extends StatefulWidget {
 class _ResponsiveShellState extends State<ResponsiveShell> {
   int _currentIndex = 0;
 
-  // Fungsi Logout
+  late Future<UserProfile?> _profileFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileFuture = ProfileService().getMyProfile();
+  }
+
+  // LOGOUT
   Future<void> _logout() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -64,11 +73,146 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     }
   }
 
-  // Dialog Tambah dan Edit Course
+  // PROFIL PENGGUNA
+  Widget _buildProfileHeader() {
+    return FutureBuilder<UserProfile?>(
+      future: _profileFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: LinearProgressIndicator(),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Container(
+            width: double.infinity,
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              'Gagal memuat profil pengguna.',
+              style: TextStyle(color: Colors.red),
+            ),
+          );
+        }
+
+        final profile = snapshot.data;
+
+        if (profile == null) {
+          return Container(
+            width: double.infinity,
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              'Data profil pengguna tidak ditemukan.',
+            ),
+          );
+        }
+
+        String roleName;
+
+        switch (profile.role) {
+          case 'seeker':
+            roleName = 'User';
+            break;
+          case 'owner':
+            roleName = 'Owner';
+            break;
+          case 'admin':
+            roleName = 'Admin';
+            break;
+          default:
+            roleName = profile.role;
+        }
+
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Colors.blue.shade700,
+                    child: const Icon(
+                      Icons.person,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Profil Pengguna',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Nama: ${profile.name.isNotEmpty ? profile.name : '-'}',
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Email: ${profile.email}',
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Role: $roleName',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+              const Divider(height: 20),
+              Text(
+                '$studentId • $studentName',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.blueGrey,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // DIALOG TAMBAH DAN EDIT COURSE
   void _showCourseDialog(BuildContext context, {Course? course}) {
     final formKey = GlobalKey<FormState>();
-    final codeCtrl = TextEditingController(text: course?.code ?? '');
-    final titleCtrl = TextEditingController(text: course?.title ?? '');
+
+    final codeCtrl = TextEditingController(
+      text: course?.code ?? '',
+    );
+
+    final titleCtrl = TextEditingController(
+      text: course?.title ?? '',
+    );
+
     final creditsCtrl = TextEditingController(
       text: course?.credits.toString() ?? '',
     );
@@ -80,7 +224,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setStateDialog) => AlertDialog(
-          title: Text(isEditing ? 'Edit Course' : 'Create Course'),
+          title: Text(
+            isEditing ? 'Edit Course' : 'Create Course',
+          ),
           content: SingleChildScrollView(
             child: Form(
               key: formKey,
@@ -118,16 +264,21 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                       if (v == null || v.trim().isEmpty) {
                         return 'Wajib diisi';
                       }
+
                       if (int.tryParse(v) == null) {
                         return 'Harus angka';
                       }
+
                       return null;
                     },
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: ['planned', 'active', 'done']
-                            .contains(selectedStatus)
+                    initialValue: [
+                      'planned',
+                      'active',
+                      'done',
+                    ].contains(selectedStatus)
                         ? selectedStatus
                         : 'active',
                     decoration: const InputDecoration(
@@ -149,7 +300,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                     ],
                     onChanged: (v) {
                       if (v != null) {
-                        setStateDialog(() => selectedStatus = v);
+                        setStateDialog(
+                          () => selectedStatus = v,
+                        );
                       }
                     },
                   ),
@@ -174,7 +327,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                       id: course.id,
                       code: course.code,
                       title: titleCtrl.text.trim(),
-                      credits: int.parse(creditsCtrl.text.trim()),
+                      credits: int.parse(
+                        creditsCtrl.text.trim(),
+                      ),
                       status: selectedStatus,
                     );
 
@@ -200,7 +355,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                     final newCourse = Course(
                       code: codeCtrl.text.trim(),
                       title: titleCtrl.text.trim(),
-                      credits: int.parse(creditsCtrl.text.trim()),
+                      credits: int.parse(
+                        creditsCtrl.text.trim(),
+                      ),
                       status: selectedStatus,
                     );
 
@@ -222,7 +379,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                   }
                 }
               },
-              child: Text(isEditing ? 'Simpan' : 'Tambah'),
+              child: Text(
+                isEditing ? 'Simpan' : 'Tambah',
+              ),
             ),
           ],
         ),
@@ -230,13 +389,15 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     );
   }
 
-  // Konfirmasi Hapus Course
+  // KONFIRMASI HAPUS COURSE
   void _confirmDelete(BuildContext context, Course course) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Konfirmasi Hapus'),
-        content: Text('Hapus mata kuliah "${course.title}"?'),
+        content: Text(
+          'Hapus mata kuliah "${course.title}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -279,7 +440,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     );
   }
 
-  // Tampilan Daftar Course
+  // TAMPILAN DAFTAR COURSE
   Widget _buildListTab(CourseProvider prov) {
     if (prov.isLoading) {
       return const Center(
@@ -290,7 +451,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     if (prov.error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -319,7 +480,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
 
     if (prov.courses.isEmpty) {
       return const Center(
-        child: Text('Tidak ada data courses di Supabase.'),
+        child: Text(
+          'Tidak ada data courses di Supabase.',
+        ),
       );
     }
 
@@ -339,13 +502,17 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => CourseDetailPage(course: item),
+                  builder: (_) => CourseDetailPage(
+                    course: item,
+                  ),
                 ),
               );
             },
             leading: CircleAvatar(
               child: Text(
-                item.code.isNotEmpty ? item.code[0] : '?',
+                item.code.isNotEmpty
+                    ? item.code[0]
+                    : '?',
               ),
             ),
             title: Text(
@@ -367,23 +534,30 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                         : Icons.favorite_border,
                     color: Colors.red,
                   ),
-                  onPressed: () => prov.toggleFavorite(item.code),
+                  onPressed: () {
+                    prov.toggleFavorite(item.code);
+                  },
                 ),
                 IconButton(
                   icon: const Icon(
                     Icons.edit,
                     color: Colors.blue,
                   ),
-                  onPressed: () =>
-                      _showCourseDialog(context, course: item),
+                  onPressed: () {
+                    _showCourseDialog(
+                      context,
+                      course: item,
+                    );
+                  },
                 ),
                 IconButton(
                   icon: const Icon(
                     Icons.delete,
                     color: Colors.redAccent,
                   ),
-                  onPressed: () =>
-                      _confirmDelete(context, item),
+                  onPressed: () {
+                    _confirmDelete(context, item);
+                  },
                 ),
               ],
             ),
@@ -393,7 +567,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     );
   }
 
-  // Tampilan Course Favorit
+  // TAMPILAN COURSE FAVORIT
   Widget _buildFavoritesTab(CourseProvider prov) {
     final favs = prov.favoriteCourses;
 
@@ -418,13 +592,17 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => CourseDetailPage(course: item),
+                  builder: (_) => CourseDetailPage(
+                    course: item,
+                  ),
                 ),
               );
             },
             leading: CircleAvatar(
               child: Text(
-                item.code.isNotEmpty ? item.code[0] : '?',
+                item.code.isNotEmpty
+                    ? item.code[0]
+                    : '?',
               ),
             ),
             title: Text(
@@ -441,7 +619,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                 Icons.favorite,
                 color: Colors.red,
               ),
-              onPressed: () => prov.toggleFavorite(item.code),
+              onPressed: () {
+                prov.toggleFavorite(item.code);
+              },
             ),
           ),
         );
@@ -449,6 +629,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     );
   }
 
+  // HALAMAN UTAMA
   @override
   Widget build(BuildContext context) {
     final prov = context.watch<CourseProvider>();
@@ -456,19 +637,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
 
     final content = Column(
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          color: Colors.blue.shade50,
-          child: const Text(
-            '$studentId • $studentName',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
-            ),
-          ),
-        ),
+        _buildProfileHeader(),
         Expanded(
           child: _currentIndex == 0
               ? _buildListTab(prov)
@@ -498,7 +667,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                 NavigationRail(
                   selectedIndex: _currentIndex,
                   onDestinationSelected: (idx) {
-                    setState(() => _currentIndex = idx);
+                    setState(() {
+                      _currentIndex = idx;
+                    });
                   },
                   labelType: NavigationRailLabelType.all,
                   destinations: const [
@@ -516,7 +687,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                   thickness: 1,
                   width: 1,
                 ),
-                Expanded(child: content),
+                Expanded(
+                  child: content,
+                ),
               ],
             )
           : content,
@@ -525,7 +698,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
           : NavigationBar(
               selectedIndex: _currentIndex,
               onDestinationSelected: (idx) {
-                setState(() => _currentIndex = idx);
+                setState(() {
+                  _currentIndex = idx;
+                });
               },
               destinations: const [
                 NavigationDestination(
@@ -540,7 +715,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
             ),
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton(
-              onPressed: () => _showCourseDialog(context),
+              onPressed: () {
+                _showCourseDialog(context);
+              },
               child: const Icon(Icons.add),
             )
           : null,
