@@ -1,7 +1,10 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Izin notifikasi Android 13 ke atas -->
+    <!-- Permission Internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Permission Notifikasi Android 13 ke atas -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -9,11 +12,17 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
-        <!-- Mengaktifkan Firebase Installation ID -->
+        <!-- Mengaktifkan Firebase Messaging Installation ID -->
         <meta-data
             android:name="firebase_messaging_installation_id_enabled"
             android:value="true" />
 
+        <!-- Default Notification Channel Firebase -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="course_updates_channel" />
+
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -30,11 +39,13 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
         </activity>
 
+        <!-- Flutter Embedding -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

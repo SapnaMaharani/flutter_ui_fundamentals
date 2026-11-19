@@ -58,19 +58,19 @@ class NotificationService {
     );
   }
 
-  // Mendengarkan Firebase Installation ID
+  // Menerima FCM Registration Token
   void listenRegistration() {
     _messaging.onRegistered.listen(
-      (installationId) {
-        debugPrint('Firebase Installation ID: $installationId');
+      (token) {
+        debugPrint('FCM Registration Token: $token');
       },
       onError: (error) {
-        debugPrint('Gagal mendapatkan Installation ID: $error');
+        debugPrint('Gagal mendapatkan FCM Token: $error');
       },
     );
   }
 
-  // Menampilkan notifikasi
+  // Menampilkan notifikasi lokal
   Future<void> showNotification(RemoteMessage message) async {
     final title =
         message.notification?.title ?? 'Course Data Manager';
@@ -99,7 +99,7 @@ class NotificationService {
     debugPrint('Pesan: $body');
   }
 
-  // Menerima pesan saat aplikasi terbuka
+  // Menerima notifikasi saat aplikasi terbuka
   void listenForegroundMessages() {
     FirebaseMessaging.onMessage.listen(
       (RemoteMessage message) async {
@@ -112,10 +112,11 @@ class NotificationService {
     );
   }
 
-  // Berlangganan topic
+  // Berlangganan topic notifikasi
   Future<void> subscribeToTopic() async {
     try {
       await _messaging.subscribeToTopic('course_updates');
+
       debugPrint(
         'Berhasil berlangganan topic course_updates',
       );
@@ -124,7 +125,7 @@ class NotificationService {
     }
   }
 
-  // Inisialisasi layanan
+  // Inisialisasi seluruh layanan notifikasi
   Future<void> init() async {
     await requestPermission();
     await initializeLocalNotifications();
@@ -133,6 +134,7 @@ class NotificationService {
     listenForegroundMessages();
 
     await _messaging.register();
+
     await subscribeToTopic();
 
     debugPrint('Notification Service siap digunakan');
