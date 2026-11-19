@@ -2,9 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+import 'firebase_options.dart';
 
 import 'services/course_supabase_service.dart';
 import 'services/auth_service.dart';
+import 'services/notification_service.dart';
 
 import 'repositories/course_repository.dart';
 import 'providers/course_provider.dart';
@@ -18,17 +22,26 @@ const String studentId = '2415051024';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Inisialisasi Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   // Inisialisasi Supabase
   await Supabase.initialize(
     url: 'https://grrelxipjcpmaxnkqnfd.supabase.co',
     publishableKey: 'sb_publishable__J_ypG1Z4qHJyu-PsVUjhg_5IFn5bJF',
   );
 
+  // Inisialisasi Push Notification
+  await NotificationService.instance.init();
+
   // Inisialisasi Repository
   final repository = CourseRepository(
     dataSource: CourseSupabaseService(),
   );
 
+  // Menjalankan aplikasi
   runApp(
     ChangeNotifierProvider(
       create: (_) => CourseProvider(repository)..loadCourses(),

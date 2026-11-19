@@ -1,4 +1,4 @@
-package com.example.flutter_ui_fundamentals
+git add .package com.example.flutter_ui_fundamentals
 
 import io.flutter.embedding.android.FlutterActivity
 
